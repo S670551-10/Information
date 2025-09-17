@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information</title>
+    <link rel="stylesheet" href="style.css"> <!-- CSS वेगळ्या फाईलमध्ये ठेवली -->
+</head>
+<body>
+
+    <h1 class="main-title">Information</h1>
+
+    <!-- हा कंटेनर सुरुवातीला रिकामा असेल. JavaScript द्वारे कार्ड्स येथे टाकले जातील. -->
+    <div id="card-container" class="card-container">
+        <!-- Lazy loading साठी एक लोडर (ऐच्छिक) -->
+        <div class="loader">लोड होत आहे...</div>
+    </div>
+
+    <!-- The Full-Screen Popup Structure -->
+    <div id="popup" class="popup-overlay">
+        <div class="popup-header">
+            <h1 id="popup-title" class="popup-title"></h1>
+            <button id="close-btn" class="close-button">&times;</button>
+        </div>
+        <div id="popup-body" class="popup-body"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cardContainer = document.getElementById('card-container');
+            const loader = document.querySelector('.loader');
+
+            const popupOverlay = document.getElementById('popup');
+            const popupTitle = document.getElementById('popup-title');
+            const popupBody = document.getElementById('popup-body');
+            const closeButton = document.getElementById('close-btn');
+            const bodyElement = document.body;
+
+            // --- पॉपअप उघडण्यासाठी आणि बंद करण्यासाठी फंक्शन्स ---
+            const openPopup = (title, content) => {
+                popupTitle.textContent = title;
+                popupBody.innerHTML = content;
+                popupOverlay.classList.add('active');
+                bodyElement.style.overflow = 'hidden';
+            };
+
+            const closePopup = () => {
+                popupOverlay.classList.remove('active');
+                bodyElement.style.overflow = 'auto';
+            };
+            
+            closeButton.addEventListener('click', closePopup);
+
+            // --- कार्ड तयार करण्यासाठी फंक्शन ---
+            const createCard = (item) => {
+                const card = document.createElement('div');
+                card.className = 'info-card';
+
+                const cardTitle = document.createElement('h2');
+                cardTitle.className = 'card-title';
+                cardTitle.textContent = item.title;
+
+                const cardDescription = document.createElement('p');
+                cardDescription.className = 'card-description';
+                cardDescription.textContent = item.description;
+
+                card.appendChild(cardTitle);
+                card.appendChild(cardDescription);
+                
+                // कार्डवर क्लिक केल्यावर पॉपअप उघडेल
+                card.addEventListener('click', () => {
+                    openPopup(item.title, item.content);
+                });
+
+                return card;
+            };
+
+            // --- JSON मधून डेटा लोड करण्यासाठी फंक्शन (Lazy Loading) ---
+            const loadData = async () => {
+                try {
+                    // data.json फाईलमधून डेटा मिळवा
+                    const response = await fetch('data.json');
+                    const data = await response.json();
+
+                    // लोडर काढा
+                    if (loader) {
+                        loader.remove();
+                    }
+
+                    // मिळालेल्या प्रत्येक माहितीसाठी एक कार्ड तयार करा आणि ते पेजवर दाखवा
+                    data.forEach(item => {
+                        const cardElement = createCard(item);
+                        cardContainer.appendChild(cardElement);
+                    });
+                } catch (error) {
+                    console.error('माहिती लोड करताना एरर आला:', error);
+                    cardContainer.innerHTML = '<p>माहिती लोड करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.</p>';
+                }
+            };
+            
+            // पेज लोड झाल्यावर डेटा लोड करा
+            loadData();
+        });
+    </script>
+
+</body>
+</html>
